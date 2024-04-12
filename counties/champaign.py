@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup, Tag
+from functools import cache
 from classes.assessment_data import AssessmentData
 import re
 import requests
@@ -10,38 +11,46 @@ def load(pin: str, year: int) -> AssessmentData:
 
 	# Get page
 	page_soup = get_page_soup(pin, year)
-	if page_soup.find('h4', string=re.compile(' : ' + str(year))):
-		# Get assessed value
-		assessed_value = get_assessed_value(page_soup)
-		
-		# Get tax rate
-		try:
-			tax_rate = get_tax_rate(page_soup)
-		except:
-			tax_rate = get_tax_rate(get_page_soup(pin, year - 1))
+	if not page_soup.find('h4', string=re.compile(' : ' + str(year))):
+		raise Exception("Could not find property information for year " + str(year))
 
-		# Get exemptions
-		exemptions = get_exemptions(page_soup)
-
-		# Get flat taxes
-		flat_tax=0
-	else:
-		page_soup = get_page_soup(pin, year - 1)
-		
-		# Get assessed value
+	# Get assessed value
+	try:
 		assessed_value = get_assessed_value(page_soup)
-		# TODO: Handle missing years
-		raise Exception("Unsupported year")
-		
-		# Get tax rate
+	except:
+		for i in range(1, 3):
+			try:
+				assessed_value = get_assessed_value(get_page_soup(pin, year - i))
+				break
+			except:
+				pass
+
+
+	# Get tax rate
+	try:
 		tax_rate = get_tax_rate(page_soup)
-		
-		# Get exemptions
+	except:
+		for i in range(1, 3):
+			try:
+				tax_rate = get_tax_rate(get_page_soup(pin, year - i))
+				break
+			except:
+				pass
+
+	# Get exemptions
+	try:
 		exemptions = get_exemptions(page_soup)
-		
-		# Get flat taxes
-		flat_tax=0
-	
+	except:
+		for i in range(1, 3):
+			try:
+				exemptions = get_exemptions(get_page_soup(pin, year - i))
+				break
+			except:
+				pass
+
+	# Get flat taxes
+	flat_tax=0
+
 	# Remove commas and convert to float
 	assessed_value = float(assessed_value.replace(",", ""))
 
@@ -52,6 +61,7 @@ def load(pin: str, year: int) -> AssessmentData:
 		flat_tax=flat_tax
 	)
 
+@cache
 def get_page_soup(pin: str, year: int) -> BeautifulSoup:
 	url = "https://champaignil.devnetwedge.com/parcel/view/" + pin + "/" + str(year)
 	page = requests.get(url).text
@@ -66,7 +76,7 @@ def get_assessed_value(page_soup: BeautifulSoup):
 	board_of_review_cell = page_soup.find('td', string=re.compile('Board of Review'))
 	if board_of_review_cell and board_of_review_cell.parent:
 		board_of_review_row = board_of_review_cell.parent
-		assessed_value = board_of_review_row.find_all('td')[-1].text
+		assessed_value = board_of_review_row.find_all('td')[-2].text
 	else:
 		raise Exception("Could not find Board of Review assessment")
 	return assessed_value
