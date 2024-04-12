@@ -8,7 +8,8 @@ import sys
 if len(sys.argv) > 1:
 	county_name = sys.argv[1]
 else:
-	county_name = input("Enter county name: ").lower().replace(" ", "_")
+	county_name = input("Enter county name: ")
+county_name = county_name.lower().replace(" ", "_")
 
 # Check if county package exists
 try:

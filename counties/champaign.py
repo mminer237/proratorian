@@ -4,7 +4,7 @@ import re
 import requests
 
 def load(pin: str, year: int) -> AssessmentData:
-	pin = pin.replace("-", "")
+	pin = pin.strip().replace("-", "")
 	if not re.match(r"^\d{12}$", pin):
 		raise Exception("Invalid PIN")
 
