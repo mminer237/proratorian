@@ -17,10 +17,12 @@ def load(pin: str, year: int) -> AssessmentData:
 	# Get assessed value
 	try:
 		assessed_value = get_assessed_value(page_soup)
+		assessment_year = year
 	except:
 		for i in range(1, 3):
 			try:
 				assessed_value = get_assessed_value(get_page_soup(pin, year - i))
+				assessment_year = year - i
 				break
 			except:
 				pass
@@ -29,10 +31,12 @@ def load(pin: str, year: int) -> AssessmentData:
 	# Get tax rate
 	try:
 		tax_rate = get_tax_rate(page_soup)
+		rate_year = year
 	except:
 		for i in range(1, 3):
 			try:
 				tax_rate = get_tax_rate(get_page_soup(pin, year - i))
+				rate_year = year - i
 				break
 			except:
 				pass
@@ -40,25 +44,26 @@ def load(pin: str, year: int) -> AssessmentData:
 	# Get exemptions
 	try:
 		exemptions = get_exemptions(page_soup)
+		exemptions_year = year
 	except:
 		for i in range(1, 3):
 			try:
 				exemptions = get_exemptions(get_page_soup(pin, year - i))
+				exemptions_year = year - i
 				break
 			except:
 				pass
-
-	# Get flat taxes
-	flat_tax=0
 
 	# Remove commas and convert to float
 	assessed_value = float(assessed_value.replace(",", ""))
 
 	return AssessmentData(
 		assessed_value=assessed_value,
+		assessment_year=assessment_year,
 		tax_rate=tax_rate,
+		rate_year=rate_year,
 		exemptions=exemptions,
-		flat_tax=flat_tax
+		exemptions_year=exemptions_year
 	)
 
 @cache

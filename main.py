@@ -49,9 +49,9 @@ exemptions = reduce(lambda a, x: (None, a[1] + x[1]), data.exemptions, (None, 0)
 total_tax = (data.assessed_value - exemptions) * data.tax_rate + data.flat_tax
 prorated_tax = total_tax * days_through_year / days_in_year
 # Pretty-print dollar amounts
-print(f"Assessed value: ${data.assessed_value:,.0f}")
-print(f"Exemptions: ${exemptions:,.0f}")
+print(f"Assessed value ({data.assessment_year}): ${data.assessed_value:,.0f}")
+print(f"Exemptions ({data.exemptions_year}): ${exemptions:,.0f}")
 print(f"Taxed value: ${data.assessed_value - exemptions:,.2f}")
-print(f"Tax rate: {data.tax_rate * 100:f}%")
+print(f"Tax rate ({data.rate_year}): {data.tax_rate * 100:f}%")
 print(f"Total tax: ${total_tax:,.2f}")
 print(f"Prorated tax: ${prorated_tax:,.2f}")
