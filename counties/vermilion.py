@@ -4,11 +4,11 @@ from classes.assessment_data import AssessmentData
 import re
 import requests
 
-INCLUDES_CLOSING_DATE = True
+INCLUDES_CLOSING_DATE = False
 
 def load(pin: str, year: int) -> AssessmentData:
 	pin = pin.strip().replace("-", "")
-	if not re.match(r"^\d{12}$", pin):
+	if not re.match(r"^\d{10}$", pin):
 		raise Exception("Invalid PIN")
 
 	# Get page
@@ -70,7 +70,7 @@ def load(pin: str, year: int) -> AssessmentData:
 
 @cache
 def get_page_soup(pin: str, year: int) -> BeautifulSoup:
-	url = "https://champaignil.devnetwedge.com/parcel/view/" + pin + "/" + str(year)
+	url = "https://vermilionil.devnetwedge.com/parcel/view/" + pin + "/" + str(year)
 	page = requests.get(url).text
 	if not page:
 		raise Exception("Page is empty")
@@ -83,7 +83,7 @@ def get_assessed_value(page_soup: BeautifulSoup):
 	board_of_review_cell = page_soup.find('td', string=re.compile('Board of Review'))
 	if board_of_review_cell and board_of_review_cell.parent:
 		board_of_review_row = board_of_review_cell.parent
-		assessed_value = board_of_review_row.find_all('td')[-2].text
+		assessed_value = board_of_review_row.find_all('td')[-1].text
 	else:
 		raise Exception("Could not find Board of Review assessment")
 	return assessed_value

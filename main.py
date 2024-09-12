@@ -16,7 +16,6 @@ try:
 	exec("from counties import " + county_name + " as county")
 except ModuleNotFoundError:
 	raise Exception("County module not found")
-	sys.exit()
 
 # Get parcel number from user or use parameter if passed
 if len(sys.argv) > 2:
@@ -42,6 +41,9 @@ data: AssessmentData = county.load(pin, closing_date.year)
 assert isinstance(data, AssessmentData)
 
 days_through_year = closing_date.timetuple().tm_yday
+if hasattr(county, "INCLUDES_CLOSING_DATE"):
+	if not county.INCLUDES_CLOSING_DATE:
+		days_through_year -= 1
 days_in_year = 365 + int(closing_date.year % 4 == 0 and (closing_date.year % 100 != 0 or closing_date.year % 400 == 0))
 
 # Calculate taxes
