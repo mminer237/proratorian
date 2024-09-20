@@ -2,7 +2,40 @@ from classes.assessment_data import AssessmentData
 from datetime import datetime
 import dateutil.parser
 from functools import reduce
+import glob
+import os
+import platformdirs
 import sys
+import yaml
+
+# Check if config file exists
+script_dir = sys.path[0]
+try:
+	with open(script_dir + "/config.yaml") as f:
+		config = yaml.safe_load(f)
+except Exception:
+	config_dir = platformdirs.user_config_dir("proratorian")
+	try:
+		with open(config_dir + "/config.yaml") as f:
+			config = yaml.safe_load(f)
+	except Exception:
+		pass
+	
+if "config" in locals():
+	if "clients_directories" in config:
+		client_name = input("Enter client name: ")
+		for clients_directory in config["clients_directories"]:
+			folders = list(filter(lambda x: os.path.isdir(x), glob.glob(clients_directory + "/*" + client_name + "*")))
+			folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+			for folder in folders:
+				response = input(folder + "? (Y/n): ")
+				if not response or response[0].lower() == "y":
+					client_directory = folder
+					break
+			if "client_directory" in locals():
+				break
+		if "client_directory" not in locals():
+			raise Exception("Client not found")
 
 # Get county name from user or use parameter if passed
 if len(sys.argv) > 1:
@@ -54,10 +87,16 @@ total_tax_explanation = f"${taxed_value:,.2f} × {data.tax_rate * 100:f}%"
 if data.flat_tax > 0:
 	total_tax_explanation += f" + ${data.flat_tax:,.2f}"
 prorated_tax = total_tax * days_through_year / days_in_year
+
 # Pretty-print dollar amounts
+stdout = sys.stdout
+sys.stdout = sys.stdout if "client_directory" not in locals() else open(f"{client_directory}/prorations.txt", "w")
 print(f"Assessed value ({data.assessment_year}): ${data.assessed_value:,.0f}")
 print(f"Exemptions ({data.exemptions_year}): ${exemptions:,.0f}")
 print(f"Taxed value: ${data.assessed_value - exemptions:,.2f}")
 print(f"Tax rate ({data.rate_year}): {data.tax_rate * 100:f}%")
 print(f"Total tax: ${total_tax:,.2f} ({total_tax_explanation})")
 print(f"Prorated tax: ${prorated_tax:,.2f} (${total_tax:,.2f} × {days_through_year} ÷ {days_in_year})")
+if "client_directory" in locals():
+	sys.stdout.close()
+	sys.stdout = stdout

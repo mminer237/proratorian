@@ -1,4 +1,5 @@
 beautifulsoup4
+platformdirs
 python-dateutil
 pyyaml
 requests
