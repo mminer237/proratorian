@@ -48,12 +48,16 @@ days_in_year = 365 + int(closing_date.year % 4 == 0 and (closing_date.year % 100
 
 # Calculate taxes
 exemptions = reduce(lambda a, x: (None, a[1] + x[1]), data.exemptions, (None, 0))[1]
-total_tax = (data.assessed_value - exemptions) * data.tax_rate + data.flat_tax
+taxed_value = data.assessed_value - exemptions
+total_tax = taxed_value * data.tax_rate + data.flat_tax
+total_tax_explanation = f"${taxed_value:,.2f} × {data.tax_rate * 100:f}%"
+if data.flat_tax > 0:
+	total_tax_explanation += f" + ${data.flat_tax:,.2f}"
 prorated_tax = total_tax * days_through_year / days_in_year
 # Pretty-print dollar amounts
 print(f"Assessed value ({data.assessment_year}): ${data.assessed_value:,.0f}")
 print(f"Exemptions ({data.exemptions_year}): ${exemptions:,.0f}")
 print(f"Taxed value: ${data.assessed_value - exemptions:,.2f}")
 print(f"Tax rate ({data.rate_year}): {data.tax_rate * 100:f}%")
-print(f"Total tax: ${total_tax:,.2f}")
-print(f"Prorated tax: ${prorated_tax:,.2f}")
+print(f"Total tax: ${total_tax:,.2f} ({total_tax_explanation})")
+print(f"Prorated tax: ${prorated_tax:,.2f} (${total_tax:,.2f} × {days_through_year} ÷ {days_in_year})")
