@@ -24,18 +24,19 @@ except Exception:
 if "config" in locals():
 	if "clients_directories" in config:
 		client_name = input("Enter client name: ")
-		for clients_directory in config["clients_directories"]:
-			folders = list(filter(lambda x: os.path.isdir(x), glob.glob(clients_directory + "/*" + client_name + "*")))
-			folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-			for folder in folders:
-				response = input(folder + "? (Y/n): ")
-				if not response or response[0].lower() == "y":
-					client_directory = folder
+		if client_name:
+			for clients_directory in config["clients_directories"]:
+				folders = list(filter(lambda x: os.path.isdir(x), glob.glob(clients_directory + "/*" + client_name + "*")))
+				folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+				for folder in folders:
+					response = input(folder + "? (Y/n): ")
+					if not response or response[0].lower() == "y":
+						client_directory = folder
+						break
+				if "client_directory" in locals():
 					break
-			if "client_directory" in locals():
-				break
-		if "client_directory" not in locals():
-			raise Exception("Client not found")
+			if "client_directory" not in locals():
+				raise Exception("Client not found")
 
 # Get county name from user or use parameter if passed
 if len(sys.argv) > 1:
